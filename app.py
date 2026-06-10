@@ -1,15 +1,13 @@
 import pickle
 import numpy as np
 from flask import Flask, request, jsonify
+import os
 
 app = Flask(__name__)
 
 # Load model and scaler
 model = None
 scaler = None
-@app.route('/predict', methods=['POST'])
-def predict():
-    ...
 
 try:
     with open('optimized_diabetes_model.sav', 'rb') as f:
@@ -34,13 +32,11 @@ def home():
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # Check if model loaded
         if model is None or scaler is None:
             return jsonify({
                 "error": "Model or scaler not loaded"
             }), 500
 
-        # Get JSON data
         data = request.get_json()
 
         if not data:
@@ -48,46 +44,39 @@ def predict():
                 "error": "No JSON data received"
             }), 400
 
-        # Check features key
         if 'features' not in data:
             return jsonify({
                 "error": "Missing 'features' key"
             }), 400
 
-        # Convert input to NumPy array
-        features = np.array(data['features'], dtype=float).reshape(1, -1)
+        features = np.array(
+            data['features'],
+            dtype=float
+        ).reshape(1, -1)
 
-        # Validate feature count
         if features.shape[1] != 8:
             return jsonify({
                 "error": f"Expected 8 features but received {features.shape[1]}"
             }), 400
 
-        # Scale input
         features_scaled = scaler.transform(features)
 
-        # Make prediction
         prediction = model.predict(features_scaled)[0]
 
-        # Get confidence score
+        confidence = None
         if hasattr(model, "predict_proba"):
             probability = model.predict_proba(features_scaled)
             confidence = round(float(np.max(probability)), 4)
-        else:
-            confidence = None
 
-        # Prepare response
-        response = {
+        return jsonify({
             "prediction": int(prediction),
             "label": "Diabetes" if prediction == 1 else "No Diabetes",
             "confidence": confidence
-        }
-
-        return jsonify(response)
+        })
 
     except ValueError:
         return jsonify({
-            "error": "Invalid input. All feature values must be numeric."
+            "error": "All feature values must be numeric"
         }), 400
 
     except Exception as e:
@@ -97,4 +86,5 @@ def predict():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
