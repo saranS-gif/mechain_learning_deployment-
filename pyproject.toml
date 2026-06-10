@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mechain_learning_deployment"
+version = "0.1.0"
+description = "Machine learning deployment application"
+dependencies = [
+    "flask==3.0.0",
+    "gunicorn==21.2.0",
+    "numpy==1.24.3",
+    "scikit-learn==1.3.0",
+    "joblib==1.3.1",
+    "python-dotenv==1.0.0",
+]
