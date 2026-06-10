@@ -7,6 +7,9 @@ app = Flask(__name__)
 # Load model and scaler
 model = None
 scaler = None
+@app.route('/predict', methods=['POST'])
+def predict():
+    ...
 
 try:
     with open('optimized_diabetes_model.sav', 'rb') as f:
